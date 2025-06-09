@@ -1,12 +1,11 @@
 package com.example.books.entity
 
 import jakarta.persistence.*
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "authors")
+@Table
 data class Authors(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

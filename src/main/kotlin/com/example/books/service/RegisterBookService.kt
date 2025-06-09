@@ -1,16 +1,14 @@
-package com.example.books.service.impl
+package com.example.books.service
 
 import com.example.books.dto.BookRequest
 import com.example.books.repository.BooksRepository
-import com.example.books.service.BookService
 import org.springframework.stereotype.Service
 
 @Service
-class BookServiceImpl(
+class RegisterBookService(
     private val booksRepository: BooksRepository
-) : BookService {
-
-    override fun registerBook(request: BookRequest): Int {
+) {
+    fun registerBook(request: BookRequest): Int {
         // 件数チェック(1件でもあれば登録しない)
         if (booksRepository.selectCountForExists(request) > 0) {
             throw IllegalArgumentException("データが既に存在します。")
