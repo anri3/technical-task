@@ -27,6 +27,10 @@ class UpdateBookService (
         // 中間テーブルのauthorIdをリストで取得
         val authorIds: List<Int> = booksAuthorsRepository.findAuthorIds(bookId)
 
+        if (authorIds.isEmpty()) {
+            throw IllegalArgumentException("author_idが存在しません")
+        }
+
         // リクエスト値の著者リスト
         val reqAuthors: List<AuthorRequest> = request.authors
         // リクエスト値の著者IDリスト
