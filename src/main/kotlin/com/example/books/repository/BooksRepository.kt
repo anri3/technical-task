@@ -12,12 +12,11 @@ import java.time.LocalDateTime
 
 @Repository
 class BooksRepository(private val dsl: DSLContext) {
-
     // 著者と本のリクエスト値を元に検索して件数を返却する
     fun selectCountForExists(request: BookRequest): Int {
         var count = 0
         request.authors.forEach { author ->
-            count = this.dsl
+            count += this.dsl
                 .selectCount()
                 .from(BOOKS)
                 .join(BOOKS_AUTHORS).on(BOOKS.ID.eq(BOOKS_AUTHORS.BOOK_ID))

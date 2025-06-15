@@ -45,14 +45,14 @@ class UpdateBookService (
         }
 
         // リクエストの著者を1人ずつ確認
-        for(reqAuthors in reqAuthors) {
-            // リクエストに著者IDなければ追加登録
-            if(reqAuthors.authorId == null){
-                authorsRepository.insert(bookId,reqAuthors)
+        for(reqAuthor in reqAuthors) {
+            // リクエストの著者IDなければ追加登録
+            if(reqAuthor.authorId == null){
+                authorsRepository.insert(bookId,reqAuthor.name, reqAuthor.birthday)
                 continue
             }else{
                 // リクエストに著者IDあれば更新
-                authorsRepository.updateById(reqAuthors)
+                authorsRepository.updateById(reqAuthor)
             }
         }
     }

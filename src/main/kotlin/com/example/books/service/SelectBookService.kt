@@ -12,7 +12,7 @@ class SelectBookService (
     private val authorsRepository: AuthorsRepository
 ) {
 
-    // 書籍情報更新(著者情報も合わせて)
+    // 著者の書籍情報取得
     fun selectBooks(name: String): AuthorResponse {
         // 名前検索
         val bookIdList: List<Int> = authorsRepository.selectIdByName(name)

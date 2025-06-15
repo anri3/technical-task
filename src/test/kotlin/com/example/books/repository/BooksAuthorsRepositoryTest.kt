@@ -10,7 +10,7 @@ import org.springframework.boot.test.autoconfigure.jooq.JooqTest
 import org.springframework.test.context.jdbc.Sql
 
 @JooqTest
-@Sql("/test-data-books-authors-repository.sql")
+@Sql("/test-data.sql")
 class BooksAuthorsRepositoryTest {
 
     @Autowired
@@ -23,7 +23,6 @@ class BooksAuthorsRepositoryTest {
         repository = BooksAuthorsRepository(dsl)
     }
 
-    // 2件返却
     @Test
     @DisplayName("指定のauthor_idのリストが返却されること")
     fun `findAuthorIds should return author ids`() {

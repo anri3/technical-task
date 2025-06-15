@@ -90,7 +90,7 @@ class BookController(private val registerBookService: RegisterBookService,
         }
     }
 
-    // 著者情報参照API
+    // 著者の書籍参照API
     @PostMapping("/author/info")
     fun selectBooks(@RequestBody request: Map<String, String>
     ): ResponseEntity<Any> {

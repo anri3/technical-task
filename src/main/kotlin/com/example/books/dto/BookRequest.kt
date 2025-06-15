@@ -1,6 +1,7 @@
 package com.example.books.dto
 
 import com.example.books.controller.validation.UpdateValidation
+import jakarta.validation.Valid
 import jakarta.validation.constraints.*
 import java.time.LocalDate
 
@@ -16,7 +17,8 @@ data class BookRequest(
     @field:AssertTrue(message = "未出版に更新できません", groups = [UpdateValidation::class])
     val isPublished: Boolean?,
 
-    @field:Size(min = 1, max = 100, message = "著者は1人以上100人以下である必要があります")
+    @field:Size(min = 1, message = "著者は1人以上である必要があります")
+    @field:Valid
     val authors: List<AuthorRequest>
 )
 

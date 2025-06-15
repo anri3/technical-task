@@ -7,17 +7,18 @@ import com.example.jooq.generated.tables.BooksAuthors.BOOKS_AUTHORS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Repository
 class AuthorsRepository(private val dsl: DSLContext) {
     // 登録
     @Transactional
-    fun insert(bookId: Int, request: AuthorRequest) {
+    fun insert(bookId: Int, name: String, birthday: LocalDate) {
         // authors テーブルへ登録
         val authorId = this.dsl.insertInto(AUTHORS)
-            .set(AUTHORS.NAME, request.name)
-            .set(AUTHORS.BIRTHDAY, request.birthday)
+            .set(AUTHORS.NAME, name)
+            .set(AUTHORS.BIRTHDAY, birthday)
             .returning(AUTHORS.ID)
             .fetchOne()
             ?.id ?: throw IllegalStateException("authorsテーブルへの登録が失敗しました。")
