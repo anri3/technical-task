@@ -19,7 +19,6 @@ class BookService(
     fun selectBooks(name: String): AuthorResponse {
         // 名前検索
         val bookIdList: List<Int> = authorsRepository.selectIdByName(name)
-
         if (bookIdList.isEmpty()) {
             throw IllegalArgumentException("検索条件が存在しませんでした。")
         }
@@ -31,7 +30,6 @@ class BookService(
             val book: BookInfo = booksRepository.selectByBookId(bookId)
             list.add(book)
         }
-
         return AuthorResponse(list)
     }
 }

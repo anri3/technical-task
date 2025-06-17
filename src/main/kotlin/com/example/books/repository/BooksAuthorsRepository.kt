@@ -16,6 +16,18 @@ class BooksAuthorsRepository(private val dsl: DSLContext) {
             .fetch(BOOKS_AUTHORS.AUTHOR_ID)
     }
 
+    // 登録
+    @Transactional
+    fun insert(bookId: Int, authorId: Int) {
+        // books_authors テーブルへ 登録
+        this.dsl.insertInto(BOOKS_AUTHORS)
+            .set(BOOKS_AUTHORS.BOOK_ID, bookId)
+            .set(BOOKS_AUTHORS.AUTHOR_ID, authorId)
+            .onConflict(BOOKS_AUTHORS.BOOK_ID, BOOKS_AUTHORS.AUTHOR_ID)
+            .doNothing() // 競合があった場合に何もしない
+            .execute()
+    }
+
     // 削除
     @Transactional
     fun deleteByBookIdAndAuthorId(bookId: Int, authorId: Int) {

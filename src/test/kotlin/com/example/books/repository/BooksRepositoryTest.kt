@@ -1,10 +1,10 @@
 package com.example.books.repository
 
-import com.example.books.dto.AuthorRequest
 import com.example.books.dto.BookInfo
-import com.example.books.dto.BookRequest
-import com.example.jooq.generated.Tables.AUTHORS
+import com.example.books.dto.RegisterBookRequest
+import com.example.books.dto.UpdateBookRequest
 import com.example.jooq.generated.tables.Books.BOOKS
+import com.example.jooq.generated.tables.BooksAuthors.BOOKS_AUTHORS
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +14,6 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jooq.JooqTest
 import org.springframework.test.context.jdbc.Sql
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 @JooqTest
@@ -40,15 +39,11 @@ class BooksRepositoryTest {
     @Test
     @DisplayName("リクエストの著者1人で1人登録されていて件数が返却されること")
     fun `selectCountForExists should return count 1 by 1 request`() {
-        val title = "テストブック"
-        val price: Long = 100
+        val title = "テストブック3"
+        val price: Long = 3000
         val published = false
-        val authorId1 = 1
-        val name = "テスト著者"
-        val birthday = LocalDate.of(1995, 1, 1)
-        val authorRequest = AuthorRequest(authorId1, name, birthday)
-        val authors: List<AuthorRequest> = listOf(authorRequest)
-        val bookRequest = BookRequest(title, price, published, authors)
+        val authorIds: List<Int> = listOf(4)
+        val bookRequest = RegisterBookRequest(title, price, published, authorIds)
 
         val expected = 1
         val actual = booksRepository.selectCountForExists(bookRequest)
@@ -60,19 +55,12 @@ class BooksRepositoryTest {
     @DisplayName("リクエストの著者2人で1人登録されていて件数が返却されること")
     fun `selectCountForExists should return count 1 by 2 request`() {
         val title = "テストブック"
-        val price: Long = 100
-        val published = false
-        val authorId1 = 1
-        val name1 = "テスト著者"
-        val birthday1 = LocalDate.of(1995, 1, 1)
-        val name2 = "テスト著者8"
-        val birthday2 = LocalDate.of(1995, 2, 1)
-        val authorRequest1 = AuthorRequest(authorId1, name1, birthday1)
-        val authorRequest2 = AuthorRequest(null, name2, birthday2)
-        val authors: List<AuthorRequest> = listOf(authorRequest1, authorRequest2)
-        val bookRequest = BookRequest(title, price, published, authors)
+        val price: Long = 1000
+        val published = true
+        val authorIds: List<Int> = listOf(1,2)
+        val bookRequest = RegisterBookRequest(title, price, published, authorIds)
 
-        val expected = 1
+        val expected = 2
         val actual = booksRepository.selectCountForExists(bookRequest)
 
         assertEquals(expected, actual)
@@ -82,17 +70,10 @@ class BooksRepositoryTest {
     @DisplayName("リクエストの著者2人でどなたもDB登録なしで件数が返却されること")
     fun `selectCountForExists should return count 0 by 2 request`() {
         val title = "テストブック"
-        val price: Long = 100
-        val published = false
-        val authorId1 = 1
-        val name1 = "テスト著者10"
-        val birthday1 = LocalDate.of(1995, 1, 1)
-        val name2 = "テスト著者8"
-        val birthday2 = LocalDate.of(1995, 2, 1)
-        val authorRequest1 = AuthorRequest(authorId1, name1, birthday1)
-        val authorRequest2 = AuthorRequest(null, name2, birthday2)
-        val authors: List<AuthorRequest> = listOf(authorRequest1, authorRequest2)
-        val bookRequest = BookRequest(title, price, published, authors)
+        val price: Long = 1000
+        val published = true
+        val authorIds: List<Int> = listOf(3,4)
+        val bookRequest = RegisterBookRequest(title, price, published, authorIds)
 
         val expected = 0
         val actual = booksRepository.selectCountForExists(bookRequest)
@@ -122,10 +103,9 @@ class BooksRepositoryTest {
     @DisplayName("存在するbook_idを指定して書籍情報が返却されること")
     fun `selectByBookId should return info`() {
         val actual = booksRepository.selectByBookId(1)
-
-        val exTitle = "テストブック";
-        val exPrice: Long = 1000;
-        val exIsPublished = true;
+        val exTitle = "テストブック"
+        val exPrice: Long = 1000
+        val exIsPublished = true
         val exBookInfo = BookInfo(exTitle, exPrice, exIsPublished)
         assertEquals(exBookInfo, actual)
     }
@@ -154,63 +134,46 @@ class BooksRepositoryTest {
     }
 
     // 登録用テストのための著者取得メソッド追加
-    fun getAuthorByName(name: String): Int? {
+    fun getCountAuthorsByBookTitle(title: String): Int? {
         return dsl.selectCount()
-            .from(AUTHORS)
-            .where(AUTHORS.NAME.eq(name))
+            .from(BOOKS_AUTHORS)
+            .join(BOOKS).on(BOOKS.ID.eq(BOOKS_AUTHORS.BOOK_ID))
+            .where(BOOKS.TITLE.eq(title))
             .fetchOneInto(Int::class.java) ?: 0
     }
 
     @Test
     @DisplayName("新しい書籍情報が登録されること")
     fun `should insert new book and associate with books_authors and new authors`() {
-        // INSERT時はIDがauto_incrementなので、IDずれが発生する
-        val exTitle = "テストブック7";
-        val exPrice: Long = 5000;
-        val exIsPublished = true;
-        val name1 = "テスト著者7"
-        val birthday1 = LocalDate.of(1977, 1, 1)
-        val name2 = "テスト著者8"
-        val birthday2 = LocalDate.of(1988, 2, 1)
-        val authorRequest1 = AuthorRequest(null, name1, birthday1)
-        val authorRequest2 = AuthorRequest(null, name2, birthday2)
-        val authors: List<AuthorRequest> = listOf(authorRequest1, authorRequest2)
-        val bookRequest = BookRequest(exTitle, exPrice, exIsPublished, authors)
+        val title = "テストブック4"
+        val price: Long = 4000
+        val published = false
+        val authorIds: List<Int> = listOf(3,4)
+        val bookRequest = RegisterBookRequest(title, price, published, authorIds)
 
         // 登録実行
         booksRepository.insert(bookRequest)
 
         // 登録後の確認
-        val exBookInfo = BookInfo(exTitle, exPrice, exIsPublished)
-        assertEquals(exBookInfo, getBookByTitle(exTitle))
-        assertEquals(1, getAuthorByName("テスト著者7"))
-        assertEquals(1, getAuthorByName("テスト著者8"))
+        val exBookInfo = BookInfo(title, price, published)
+        assertEquals(exBookInfo, getBookByTitle(title))
+        assertEquals(2, getCountAuthorsByBookTitle("テストブック4"))
     }
 
     @Test
-    @DisplayName("既に登録されている著者と新規の著者をリクエストして新しい書籍情報が登録されること")
-    fun `should insert new book and associate with books_authors and authors`() {
-        // INSERT時はIDがauto_incrementなので、IDずれが発生する
-        val exTitle = "テストブック9";
-        val exPrice: Long = 5000;
-        val exIsPublished = false;
-        val name1 = "テスト著者"
-        val birthday1 = LocalDate.of(1995, 1, 1)
-        val authorRequest1 = AuthorRequest(1, name1, birthday1)
-        val name2 = "テスト著者9"
-        val birthday2 = LocalDate.of(1999, 1, 1)
-        val authorRequest2 = AuthorRequest(null, name2, birthday2)
-        val authors: List<AuthorRequest> = listOf(authorRequest1, authorRequest2)
-        val bookRequest = BookRequest(exTitle, exPrice, exIsPublished, authors)
+    @DisplayName("DBに存在しない著者IDをリクエストしてエラーになること")
+    fun `should not insert and return error if not exists authorIds`() {
+        val title = "テストブック4"
+        val price: Long = 4000
+        val published = false
+        val authorIds: List<Int> = listOf(3,5)
+        val bookRequest = RegisterBookRequest(title, price, published, authorIds)
 
         // 登録実行
-        booksRepository.insert(bookRequest)
-
-        // 登録後の確認
-        val exBookInfo = BookInfo(exTitle, exPrice, exIsPublished)
-        assertEquals(exBookInfo, getBookByTitle(exTitle))
-        assertEquals(1, getAuthorByName("テスト著者"))
-        assertEquals(1, getAuthorByName("テスト著者9"))
+        val exception = assertThrows<Exception> {
+            booksRepository.insert(bookRequest)
+        }
+        assertEquals("指定の著者IDが存在しません。", exception.message)
     }
 
     // 更新用テストのためのUPDATED_AT取得メソッド追加
@@ -228,11 +191,7 @@ class BooksRepositoryTest {
         val newTitle = "テストブック更新"
         val newPrice: Long = 5000
         val newIsPublished = true
-        val name1 = "テスト著者"
-        val birthday1 = LocalDate.of(1995, 1, 1)
-        val authorRequest1 = AuthorRequest(1, name1, birthday1)
-        val authors: List<AuthorRequest> = listOf(authorRequest1)
-        val request = BookRequest(newTitle, newPrice, newIsPublished, authors)
+        val request = UpdateBookRequest(newTitle, newPrice, newIsPublished)
 
         // 更新前の確認
         val originalBook = booksRepository.selectByBookId(bookIdToUpdate)
@@ -262,11 +221,7 @@ class BooksRepositoryTest {
         val newTitle = "テストブック更新"
         val newPrice: Long = 5000
         val newIsPublished = true
-        val name1 = "テスト著者"
-        val birthday1 = LocalDate.of(1995, 1, 1)
-        val authorRequest1 = AuthorRequest(1, name1, birthday1)
-        val authors: List<AuthorRequest> = listOf(authorRequest1)
-        val request = BookRequest(newTitle, newPrice, newIsPublished, authors)
+        val request = UpdateBookRequest(newTitle, newPrice, newIsPublished)
 
         // 更新実行
         booksRepository.updateById(bookIdToUpdate, request)
@@ -288,7 +243,6 @@ class BooksRepositoryTest {
         assertEquals(false, originalBook3.isPublished)
     }
 
-
     @Test
     @DisplayName("更新対象のIDが0の場合に更新が行われないこと")
     fun `updateById should not update anything if bookId is 0`() {
@@ -296,11 +250,7 @@ class BooksRepositoryTest {
         val newTitle = "テストブック更新"
         val newPrice: Long = 5000
         val newIsPublished = true
-        val name1 = "テスト著者"
-        val birthday1 = LocalDate.of(1995, 1, 1)
-        val authorRequest1 = AuthorRequest(1, name1, birthday1)
-        val authors: List<AuthorRequest> = listOf(authorRequest1)
-        val request = BookRequest(newTitle, newPrice, newIsPublished, authors)
+        val request = UpdateBookRequest(newTitle, newPrice, newIsPublished)
 
         // 更新実行
         booksRepository.updateById(bookIdToUpdate, request)

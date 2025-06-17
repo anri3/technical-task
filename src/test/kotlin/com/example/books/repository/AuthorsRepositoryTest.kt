@@ -73,24 +73,20 @@ class AuthorsRepositoryTest {
         // 登録前の確認
         assertEquals(emptyList<Int>(), repository.selectIdByName("Test"))
 
-        val bookId = 1
-
         // 登録実行
-        repository.insert(bookId, "Test", LocalDate.of(1988, 1, 1))
+        val number = repository.insert(AuthorRequest("Test", LocalDate.of(1988, 1, 1)))
 
         // 登録後の確認
-        val afterExpected = listOf(1)
-        assertEquals(afterExpected, repository.selectIdByName("Test"))
+        val afterExpected = 1
+        assertEquals(afterExpected, repository.selectCountById(number))
     }
 
     @Test
     @DisplayName("登録失敗でスローされること")
     fun `insert should return throw if birthday is wrong value`() {
-        val bookId = 1
-
         // 登録実行
         val exception = assertThrows<DateTimeException> {
-            repository.insert(bookId, "TestError", LocalDate.of(1988, 1, 50))
+            repository.insert(AuthorRequest("Test", LocalDate.of(1988, 1, 50)))
         }
         assertEquals("Invalid value for DayOfMonth (valid values 1 - 28/31): 50", exception.message)
     }
@@ -102,7 +98,6 @@ class AuthorsRepositoryTest {
             .where(AUTHORS.ID.eq(authorId))
             .fetchOne { record ->
                 AuthorRequest(
-                    authorId = record[AUTHORS.ID],
                     name = record[AUTHORS.NAME],
                     birthday = record[AUTHORS.BIRTHDAY]
                 )
@@ -119,89 +114,11 @@ class AuthorsRepositoryTest {
 
     @Test
     @DisplayName("既存の著者が正しく更新されること")
-    fun `updateById should update existing author information correctly`() {
-        val authorIdToUpdate = 1
-        val newName = "テスト著者 更新"
-        val newBirthday = LocalDate.of(1995, 2, 15)
-        val request = AuthorRequest(authorIdToUpdate, newName, newBirthday)
-
-        // 更新前の確認
-        val originalAuthor = getAuthorById(authorIdToUpdate)
-        assertNotNull(originalAuthor)
-        assertEquals("テスト著者", originalAuthor?.name)
-        assertEquals(LocalDate.of(1995, 1, 1), originalAuthor?.birthday)
-        val originalUpdatedAt = getUpdatedAt(authorIdToUpdate)
-
-        // 更新実行
-        repository.updateById(request)
-
-        // 更新後の確認
-        val updatedAuthor = getAuthorById(authorIdToUpdate)
-        assertNotNull(updatedAuthor)
-        assertEquals(newName, updatedAuthor?.name)
-        assertEquals(newBirthday, updatedAuthor?.birthday)
-        assertEquals(authorIdToUpdate, updatedAuthor?.authorId)
-
-        val updatedUpdatedAt = getUpdatedAt(authorIdToUpdate)
-        assertTrue(updatedUpdatedAt!!.isAfter(originalUpdatedAt), "UPDATED_AT should be updated to a later time")
-    }
-
-    @Test
-    @DisplayName("存在しないIDを指定した場合に何も更新されないこと")
-    fun `updateById should not update anything if non-existent ID is specified`() {
-        val id = 999
-        val newName = "テスト"
-        val newBirthday = LocalDate.of(2000, 1, 1)
-        val request = AuthorRequest(id, newName, newBirthday)
-
-        // 更新実行
-        repository.updateById(request)
-
-        // 存在しないIDの著者情報が取得できないこと
-        assertNull(getAuthorById(id))
-
-        // 既存のレコードが変更されていないことを確認
-        val originalAuthor1 = getAuthorById(1)
-        assertNotNull(originalAuthor1)
-        assertEquals("テスト著者", originalAuthor1?.name)
-        assertEquals(LocalDate.of(1995, 1, 1), originalAuthor1?.birthday)
-
-        val originalAuthor2 = getAuthorById(2)
-        assertNotNull(originalAuthor2)
-        assertEquals("テスト著者2", originalAuthor2?.name)
-        assertEquals(LocalDate.of(1995, 2, 1), originalAuthor2?.birthday)
-
-        val originalAuthor3 = getAuthorById(3)
-        assertNotNull(originalAuthor3)
-        assertEquals("テスト著者3", originalAuthor3?.name)
-        assertEquals(LocalDate.of(1995, 3, 1), originalAuthor3?.birthday)
-
-        val originalAuthor4 = getAuthorById(4)
-        assertNotNull(originalAuthor4)
-        assertEquals("テスト著者4", originalAuthor4?.name)
-        assertEquals(LocalDate.of(1995, 4, 1), originalAuthor4?.birthday)
-    }
-
-    @Test
-    @DisplayName("更新対象のIDが0の場合に更新が行われないこと")
-    fun `updateById should not update anything if authorId is 0`() {
-        val id = 0
-        val newName = "テスト"
-        val newBirthday = LocalDate.of(2000, 1, 1)
-        val request = AuthorRequest(id, newName, newBirthday)
-
-        repository.updateById(request)
-
-        assertNull(getAuthorById(id))
-    }
-
-    @Test
-    @DisplayName("既存の著者が正しく更新されること")
     fun `updateById(id, request) should update existing author information correctly`() {
         val authorIdToUpdate = 1
         val newName = "テスト著者 更新"
         val newBirthday = LocalDate.of(1995, 2, 15)
-        val request = AuthorRequest(null, newName, newBirthday)
+        val request = AuthorRequest(newName, newBirthday)
 
         // 更新前の確認
         val originalAuthor = getAuthorById(authorIdToUpdate)
@@ -218,7 +135,6 @@ class AuthorsRepositoryTest {
         assertNotNull(updatedAuthor)
         assertEquals(newName, updatedAuthor?.name)
         assertEquals(newBirthday, updatedAuthor?.birthday)
-        assertEquals(authorIdToUpdate, updatedAuthor?.authorId)
 
         val updatedUpdatedAt = getUpdatedAt(authorIdToUpdate)
         assertTrue(updatedUpdatedAt!!.isAfter(originalUpdatedAt), "UPDATED_AT should be updated to a later time")
@@ -230,7 +146,7 @@ class AuthorsRepositoryTest {
         val id = 999
         val newName = "テスト"
         val newBirthday = LocalDate.of(2000, 1, 1)
-        val request = AuthorRequest(null, newName, newBirthday)
+        val request = AuthorRequest(newName, newBirthday)
 
         // 更新実行
         repository.updateById(id, request)
@@ -266,7 +182,7 @@ class AuthorsRepositoryTest {
         val id = 0
         val newName = "テスト"
         val newBirthday = LocalDate.of(2000, 1, 1)
-        val request = AuthorRequest(null, newName, newBirthday)
+        val request = AuthorRequest(newName, newBirthday)
 
         repository.updateById(id, request)
 

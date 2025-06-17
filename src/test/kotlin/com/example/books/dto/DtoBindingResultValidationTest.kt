@@ -1,6 +1,5 @@
 package com.example.books.dto
 
-import com.example.books.controller.validation.UpdateValidation
 import jakarta.validation.Validation
 import jakarta.validation.Validator
 import jakarta.validation.ValidatorFactory
@@ -25,9 +24,7 @@ class DtoBindingResultValidationTest {
         }
     }
 
-    /**
-     * 指定されたリクエストオブジェクトをバリデーションし、BindingResult に結果を設定するヘルパー関数。
-     */
+    // 指定されたリクエストオブジェクトをバリデーションし、BindingResult に結果を設定するヘルパー関数。
     private fun <T : Any> validateAndGetBindingResult(
         request: T,
         vararg groups: Class<*>
@@ -52,18 +49,27 @@ class DtoBindingResultValidationTest {
         return bindingResult
     }
 
-    // --- BookRequest のバリデーションテスト (BindingResult 使用) ---
-
     @Test
-    @DisplayName("BookRequest: 全てのバリデーションルールを満たす場合、BindingResultにエラーがないこと")
-    fun `BookRequest should have no errors in BindingResult when valid`() {
-        val validRequest = BookRequest(
+    @DisplayName("RegisterBookRequest: 全てのバリデーションルールを満たす場合、BindingResultにエラーがないこと")
+    fun `RegisterBookRequest should have no errors in BindingResult when valid`() {
+        val validRequest = RegisterBookRequest(
             title = "テスト",
             price = 1000,
             isPublished = true,
-            authors = listOf(
-                AuthorRequest(1, "テスト著者", LocalDate.of(1980, 1, 1))
+            authorIds = listOf(1,2)
             )
+        val bindingResult = validateAndGetBindingResult(validRequest)
+        assertFalse(bindingResult.hasErrors(), "Valid BookRequest should have no errors")
+        assertTrue(bindingResult.allErrors.isEmpty(), "Valid BookRequest should have no errors list")
+    }
+
+    @Test
+    @DisplayName("UpdateBookRequest: 全てのバリデーションルールを満たす場合、BindingResultにエラーがないこと")
+    fun `UpdateBookRequest should have no errors in BindingResult when valid`() {
+        val validRequest = UpdateBookRequest(
+            title = "テスト",
+            price = 1000,
+            isPublished = true
         )
         val bindingResult = validateAndGetBindingResult(validRequest)
         assertFalse(bindingResult.hasErrors(), "Valid BookRequest should have no errors")
@@ -71,13 +77,36 @@ class DtoBindingResultValidationTest {
     }
 
     @Test
-    @DisplayName("BookRequest: title が空の場合、BindingResultにNotBlankエラーがあること")
-    fun `BookRequest should have NotBlank error in BindingResult for empty title`() {
-        val invalidRequest = BookRequest(
+    @DisplayName("AuthorRequest: 全てのバリデーションルールを満たす場合、BindingResultにエラーがないこと")
+    fun `AuthorRequest should have no errors in BindingResult when valid`() {
+        val validRequest = AuthorRequest(
+            name = "テスト",
+            birthday = LocalDate.of(2025, 6, 12)
+        )
+        val bindingResult = validateAndGetBindingResult(validRequest)
+        assertFalse(bindingResult.hasErrors(), "Valid BookRequest should have no errors")
+        assertTrue(bindingResult.allErrors.isEmpty(), "Valid BookRequest should have no errors list")
+    }
+
+    @Test
+    @DisplayName("BookAuthorsRequest: 全てのバリデーションルールを満たす場合、BindingResultにエラーがないこと")
+    fun `BookAuthorsRequest should have no errors in BindingResult when valid`() {
+        val validRequest = BookAuthorsRequest(
+            authorIds = listOf(1,2)
+        )
+        val bindingResult = validateAndGetBindingResult(validRequest)
+        assertFalse(bindingResult.hasErrors(), "Valid BookRequest should have no errors")
+        assertTrue(bindingResult.allErrors.isEmpty(), "Valid BookRequest should have no errors list")
+    }
+
+    @Test
+    @DisplayName("RegisterBookRequest: title が空の場合、BindingResultにNotBlankエラーがあること")
+    fun `RegisterBookRequest should have NotBlank error in BindingResult for empty title`() {
+        val invalidRequest = RegisterBookRequest(
             title = "",
-            price = 100,
+            price = 1000,
             isPublished = true,
-            authors = listOf(AuthorRequest(1, "テスト著者", LocalDate.of(1980, 1, 1)))
+            authorIds = listOf(1,2)
         )
         val bindingResult = validateAndGetBindingResult(invalidRequest)
         assertTrue(bindingResult.hasErrors(), "BindingResult should have errors for empty title")
@@ -89,13 +118,46 @@ class DtoBindingResultValidationTest {
     }
 
     @Test
-    @DisplayName("BookRequest: price が負の値の場合、BindingResultにMinエラーがあること")
-    fun `BookRequest should have Min error in BindingResult for negative price`() {
-        val invalidRequest = BookRequest(
-            title = "テスト",
-            price = -100,
+    @DisplayName("UpdateBookRequest: title が空の場合、BindingResultにNotBlankエラーがあること")
+    fun `UpdateBookRequest should have NotBlank error in BindingResult for empty title`() {
+        val invalidRequest = UpdateBookRequest(
+            title = "",
+            price = 1000,
+            isPublished = true
+        )
+        val bindingResult = validateAndGetBindingResult(invalidRequest)
+        assertTrue(bindingResult.hasErrors(), "BindingResult should have errors for empty title")
+        assertEquals(1, bindingResult.fieldErrors.size, "Should have 1 field error")
+        val fieldError = bindingResult.getFieldError("title")
+        assertNotNull(fieldError)
+        assertEquals("NotBlank", fieldError?.code)
+        assertEquals("タイトルは必須です", fieldError?.defaultMessage)
+    }
+
+    @Test
+    @DisplayName("AuthorRequest: name が空の場合、BindingResultにNotBlankエラーがあること")
+    fun `AuthorRequest should have NotBlank error in BindingResult for empty name`() {
+        val invalidRequest = AuthorRequest(
+            name = "",
+            birthday = LocalDate.of(2025, 6, 12)
+        )
+        val bindingResult = validateAndGetBindingResult(invalidRequest)
+        assertTrue(bindingResult.hasErrors(), "BindingResult should have errors for empty name")
+        assertEquals(1, bindingResult.fieldErrors.size, "Should have 1 field error")
+        val fieldError = bindingResult.getFieldError("name")
+        assertNotNull(fieldError)
+        assertEquals("NotBlank", fieldError?.code)
+        assertEquals("著者名は必須です", fieldError?.defaultMessage)
+    }
+
+    @Test
+    @DisplayName("RegisterBookRequest: price が負の値の場合、BindingResultにMinエラーがあること")
+    fun `RegisterBookRequest should have Min error in BindingResult for negative price`() {
+        val invalidRequest = RegisterBookRequest(
+            title = "タイトル",
+            price = -1000,
             isPublished = true,
-            authors = listOf(AuthorRequest(1, "テスト著者", LocalDate.of(1980, 1, 1)))
+            authorIds = listOf(1,2)
         )
         val bindingResult = validateAndGetBindingResult(invalidRequest)
         assertTrue(bindingResult.hasErrors())
@@ -106,32 +168,31 @@ class DtoBindingResultValidationTest {
     }
 
     @Test
-    @DisplayName("BookRequest: isPublished が null の場合、BindingResultにNotNullエラーがあること")
-    fun `BookRequest should have NotNull error in BindingResult for null isPublished`() {
-        val invalidRequest = BookRequest(
-            title = "テスト",
-            price = 100,
-            isPublished = null,
-            authors = listOf(AuthorRequest(1, "テスト著者", LocalDate.of(1980, 1, 1)))
+    @DisplayName("UpdateBookRequest: price が負の値の場合、BindingResultにMinエラーがあること")
+    fun `UpdateBookRequest should have Min error in BindingResult for negative price`() {
+        val invalidRequest = UpdateBookRequest(
+            title = "タイトル",
+            price = -1000,
+            isPublished = true
         )
         val bindingResult = validateAndGetBindingResult(invalidRequest)
         assertTrue(bindingResult.hasErrors())
-        val fieldError = bindingResult.getFieldError("isPublished")
+        val fieldError = bindingResult.getFieldError("price")
         assertNotNull(fieldError)
-        assertEquals("NotNull", fieldError?.code)
-        assertEquals("出版状況は必須です", fieldError?.defaultMessage)
+        assertEquals("Min", fieldError?.code)
+        assertEquals("価格は0円以上である必要があります", fieldError?.defaultMessage)
     }
 
+
     @Test
-    @DisplayName("BookRequest: isPublished が false の場合 (UpdateValidationグループ)、BindingResultにAssertTrueエラーがあること")
-    fun `BookRequest should have AssertTrue error in BindingResult for false isPublished in UpdateValidation group`() {
-        val invalidRequest = BookRequest(
-            title = "テスト",
-            price = 100,
-            isPublished = false,
-            authors = listOf(AuthorRequest(1, "テスト著者", LocalDate.of(1980, 1, 1)))
+    @DisplayName("UpdateBookRequest: isPublished が false の場合、BindingResultにAssertTrueエラーがあること")
+    fun `UpdateBookRequest should have AssertTrue error in BindingResult for false isPublished`() {
+        val invalidRequest = UpdateBookRequest(
+            title = "タイトル",
+            price = -1000,
+            isPublished = false
         )
-        val bindingResult = validateAndGetBindingResult(invalidRequest, UpdateValidation::class.java)
+        val bindingResult = validateAndGetBindingResult(invalidRequest)
         assertTrue(bindingResult.hasErrors())
         val fieldError = bindingResult.getFieldError("isPublished")
         assertNotNull(fieldError)
@@ -140,54 +201,48 @@ class DtoBindingResultValidationTest {
     }
 
     @Test
-    @DisplayName("BookRequest: authors リストが空の場合、BindingResultにSizeエラーがあること")
-    fun `BookRequest should have Size error in BindingResult for empty authors list`() {
-        val invalidRequest = BookRequest(
-            title = "テスト",
-            price = 100,
+    @DisplayName("RegisterBookRequest: authorIds リストが空の場合、BindingResultにSizeエラーがあること")
+    fun `RegisterBookRequest should have Size error in BindingResult for empty authors list`() {
+        val invalidRequest = RegisterBookRequest(
+            title = "タイトル",
+            price = 1000,
             isPublished = true,
-            authors = emptyList()
+            authorIds = listOf()
         )
         val bindingResult = validateAndGetBindingResult(invalidRequest)
         assertTrue(bindingResult.hasErrors())
-        val fieldError = bindingResult.getFieldError("authors")
+        val fieldError = bindingResult.getFieldError("authorIds")
         assertNotNull(fieldError)
         assertEquals("Size", fieldError?.code)
         assertEquals("著者は1人以上である必要があります", fieldError?.defaultMessage)
     }
 
     @Test
-    @DisplayName("BookRequest: authors リストのAuthorRequestでnameが空の場合、ネストされたBindingResultにエラーがあること")
-    fun `BookRequest should have nested NotBlank error in BindingResult for empty author name`() {
-        val invalidRequest = BookRequest(
-            title = "テスト",
-            price = 100,
-            isPublished = true,
-            authors = listOf(AuthorRequest(null, "", LocalDate.of(1980, 1, 1)))
+    @DisplayName("AuthorRequest: birthdayが現在日の場合、ネストされたBindingResultにエラーがあること")
+    fun `AuthorRequest should have nested Past error in BindingResult for birthday is today `() {
+        val invalidRequest = AuthorRequest(
+            name = "テスト",
+            birthday = LocalDate.of(2025, 6, 16)
         )
         val bindingResult = validateAndGetBindingResult(invalidRequest)
         assertTrue(bindingResult.hasErrors())
-        assertEquals(1, bindingResult.fieldErrors.size, "Should have 1 field error")
-        val fieldError = bindingResult.getFieldError("authors[0].name")
-        assertNotNull(fieldError)
-        assertEquals("NotBlank", fieldError?.code)
-        assertEquals("著者名は必須です", fieldError?.defaultMessage)
-    }
-
-    @Test
-    @DisplayName("BookRequest: authors リストのAuthorRequestでbirthdayが現在日の場合、ネストされたBindingResultにエラーがあること")
-    fun `BookRequest should have nested Past error in BindingResult for birthday is today `() {
-        val invalidRequest = BookRequest(
-            title = "テスト",
-            price = 100,
-            isPublished = true,
-            authors = listOf(AuthorRequest(null, "テスト著者", LocalDate.of(2025, 6, 12)))
-        )
-        val bindingResult = validateAndGetBindingResult(invalidRequest)
-        assertTrue(bindingResult.hasErrors())
-        val fieldError = bindingResult.getFieldError("authors[0].birthday")
+        val fieldError = bindingResult.getFieldError("birthday")
         assertNotNull(fieldError)
         assertEquals("Past", fieldError?.code)
         assertEquals("誕生日は過去の日付である必要があります", fieldError?.defaultMessage)
+    }
+
+    @Test
+    @DisplayName("BookAuthorsRequest: authorIds リストが空の場合、BindingResultにSizeエラーがあること")
+    fun `BookAuthorsRequest should have Size error in BindingResult for empty authors list`() {
+        val invalidRequest = BookAuthorsRequest(
+            authorIds = listOf()
+        )
+        val bindingResult = validateAndGetBindingResult(invalidRequest)
+        assertTrue(bindingResult.hasErrors())
+        val fieldError = bindingResult.getFieldError("authorIds")
+        assertNotNull(fieldError)
+        assertEquals("Size", fieldError?.code)
+        assertEquals("著者は1人以上である必要があります", fieldError?.defaultMessage)
     }
 }

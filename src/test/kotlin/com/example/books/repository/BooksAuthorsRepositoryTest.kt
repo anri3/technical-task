@@ -41,6 +41,36 @@ class BooksAuthorsRepositoryTest {
     }
 
     @Test
+    @DisplayName("新しい書籍に紐づく著者が登録されること")
+    fun `should insert new book associate with author`() {
+        val beforeExpected = listOf(4)
+        // 登録前の確認
+        assertEquals(beforeExpected, repository.findAuthorIds(3))
+
+        // 登録実行
+        repository.insert(3,1)
+
+        // 登録後の確認
+        val afterExpected = listOf(4,1)
+        assertEquals(afterExpected, repository.findAuthorIds(3))
+    }
+
+    @Test
+    @DisplayName("重複登録で値が変わらないこと")
+    fun `insert duplicate value should return nothing`() {
+        val expected = listOf(1,2)
+        val actual = repository.findAuthorIds(1)
+        // 登録前の確認
+        assertEquals(expected, actual)
+
+        // 登録実行
+        repository.insert(1,1)
+
+        // 登録後の確認
+        assertEquals(expected, actual)
+    }
+
+    @Test
     @DisplayName("指定したbook_idとauthor_idのレコードが削除")
     fun `deleteByBookIdAndAuthorId should delete`() {
         repository.deleteByBookIdAndAuthorId(2,3)

@@ -7,53 +7,10 @@ import com.example.jooq.generated.tables.BooksAuthors.BOOKS_AUTHORS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Repository
 class AuthorsRepository(private val dsl: DSLContext) {
-    // 登録
-    @Transactional
-    fun insert(bookId: Int, name: String, birthday: LocalDate) {
-        // authors テーブルへ登録
-        val authorId = this.dsl.insertInto(AUTHORS)
-            .set(AUTHORS.NAME, name)
-            .set(AUTHORS.BIRTHDAY, birthday)
-            .returning(AUTHORS.ID)
-            .fetchOne()
-            ?.id ?: throw IllegalStateException("authorsテーブルへの登録が失敗しました。")
-
-        // books_authors テーブルへ 登録
-        this.dsl.insertInto(BOOKS_AUTHORS)
-            .set(BOOKS_AUTHORS.BOOK_ID, bookId)
-            .set(BOOKS_AUTHORS.AUTHOR_ID, authorId)
-            .execute()
-    }
-
-    // 更新
-    @Transactional
-    fun updateById(request: AuthorRequest) {
-        // authors テーブルへ UPDATE
-        this.dsl.update(AUTHORS)
-            .set(AUTHORS.NAME, request.name)
-            .set(AUTHORS.BIRTHDAY, request.birthday)
-            .set(BOOKS.UPDATED_AT, LocalDateTime.now())
-            .where(AUTHORS.ID.eq(request.authorId))
-            .execute()
-    }
-
-    // 更新(id別)
-    @Transactional
-    fun updateById(authorId: Int, request: AuthorRequest) {
-        // authors テーブルへ UPDATE
-        this.dsl.update(AUTHORS)
-            .set(AUTHORS.NAME, request.name)
-            .set(AUTHORS.BIRTHDAY, request.birthday)
-            .set(BOOKS.UPDATED_AT, LocalDateTime.now())
-            .where(AUTHORS.ID.eq(authorId))
-            .execute()
-    }
-
     // 参照
     fun selectCountById(authorId: Int): Int {
         // authors テーブルへの参照
@@ -74,4 +31,27 @@ class AuthorsRepository(private val dsl: DSLContext) {
             .fetch(BOOKS_AUTHORS.BOOK_ID)
     }
 
+    // 登録
+    @Transactional
+    fun insert(request: AuthorRequest): Int {
+        // authors テーブルへ登録
+        return this.dsl.insertInto(AUTHORS)
+            .set(AUTHORS.NAME, request.name)
+            .set(AUTHORS.BIRTHDAY, request.birthday)
+            .returning(AUTHORS.ID)
+            .fetchOne()
+            ?.id ?: throw IllegalStateException("authorsテーブルへの登録が失敗しました。")
+    }
+
+    // 更新(id別)
+    @Transactional
+    fun updateById(authorId: Int, request: AuthorRequest) {
+        // authors テーブルへ UPDATE
+        this.dsl.update(AUTHORS)
+            .set(AUTHORS.NAME, request.name)
+            .set(AUTHORS.BIRTHDAY, request.birthday)
+            .set(BOOKS.UPDATED_AT, LocalDateTime.now())
+            .where(AUTHORS.ID.eq(authorId))
+            .execute()
+    }
 }
