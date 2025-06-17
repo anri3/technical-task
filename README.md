@@ -146,12 +146,12 @@ docker-compose up -d
 - Content-Type：application/json　
 - リクエストボディ例：
 `
-   {
-   "title": "テスト本",
-   "price": 4000,
-   "isPublished": false,
-   "authorIds": [44,45]
-   }
+{
+ "title": "テスト本",
+ "price": 4000,
+ "isPublished": false,
+ "authorIds": [44,45]
+}
 `
 2. 著者登録API
 - POST
@@ -172,9 +172,9 @@ docker-compose up -d
 - リクエストボディ例：
 `
 {
-  "title": "テスト更新",
-  "price": 5000,
-  "isPublished": true
+ "title": "テスト更新",
+ "price": 5000,
+ "isPublished": true
 }
 `
 
@@ -185,8 +185,8 @@ docker-compose up -d
 - リクエストボディ例：
 `
 {  
-  "name": "テスト",
-  "birthday": "1999-07-20"
+ "name": "テスト",
+ "birthday": "1999-07-20"
 }
 `
 5. 書籍の著者更新API
@@ -196,7 +196,7 @@ docker-compose up -d
 - リクエストボディ例：
 `
 {  
-   "authorIds": [41,42]
+ "authorIds": [41,42]
 }
 `
 
